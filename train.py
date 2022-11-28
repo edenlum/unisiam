@@ -27,6 +27,7 @@ def parse_option():
     parser = argparse.ArgumentParser('argument for training')
     
     parser.add_argument('--save_path', type=str, default=None, help='path for saving')
+    parser.add_argument('--model_path', type=str, default=None, help='path of pretrained model')
     parser.add_argument('--data_path', type=str, default=None, help='path to dataset')
     parser.add_argument('--eval_path', type=str, default=None, help='path to tested model')
     parser.add_argument('--teacher_path', type=str, default=None, help='path to teacher model')
@@ -39,7 +40,7 @@ def parse_option():
     parser.add_argument('--wd', type=float, default=1e-4, help='weight decay')
     parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
     parser.add_argument('--batch_size', type=int, default=256, help='batch_size')
-    parser.add_argument('--epochs', type=int, default=400, help='number of training epochs')
+    parser.add_argument('--epochs', type=int, default=1, help='number of training epochs')
     parser.add_argument('--lrd_step', action='store_true', help='decay learning rate per step')
 
     # self-supervision setting
@@ -235,7 +236,14 @@ def main():
         evaluate_fewshot(model.encoder, test_loader, n_way=args.n_way, n_shots=[1,5], n_query=args.n_query, classifier='LR', power_norm=True)
         return
         
-    optimizer = optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.wd, momentum=0.9)
+    if args.model_path is not None:
+        model.load_state_dict(torch.load(args.model_path)['model'], strict=False)
+        model.encoder.fc = torch.nn.Linear(model.encoder.out_dim, model.encoder.out_dim)
+        optimizer = optim.SGD([
+                {'params': model.encoder.get_parameter('fc'+'.weight')},
+            ], lr=args.lr, weight_decay=args.wd, momentum=0.9)
+    else:
+        optimizer = optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.wd, momentum=0.9)
 
     for epoch in range(args.epochs):
 
