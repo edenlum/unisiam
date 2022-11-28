@@ -140,6 +140,12 @@ def build_model(args):
 
     model = UniSiam(encoder=encoder, lamb=args.lamb, temp=args.temp, dim_hidden=args.dim_hidden, dist=args.dist)
 
+    if args.model_path is not None:
+        model.load_state_dict(torch.load(args.model_path)['model'], strict=False)
+        lin = torch.nn.Linear(model.encoder.out_dim, model.encoder.out_dim)
+        relu = torch.nn.ReLU(inplace=True)
+        model.encoder.fc = torch.nn.Sequential(lin, relu)
+        
     model.encoder = torch.nn.DataParallel(model.encoder)
     model = model.cuda()
 
@@ -237,10 +243,8 @@ def main():
         return
         
     if args.model_path is not None:
-        model.load_state_dict(torch.load(args.model_path)['model'], strict=False)
-        model.encoder.fc = torch.nn.Linear(model.encoder.out_dim, model.encoder.out_dim)
         optimizer = optim.SGD([
-                {'params': model.encoder.get_parameter('fc'+'.weight')},
+                {'params': model.encoder.get_parameter('module.fc.0'+'.weight')},
             ], lr=args.lr, weight_decay=args.wd, momentum=0.9)
     else:
         optimizer = optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.wd, momentum=0.9)
