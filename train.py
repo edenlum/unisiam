@@ -259,12 +259,15 @@ def main():
         time2 = time.time()
         print('epoch {}, total time {:.2f}'.format(epoch, time2 - time1))
 
+    print("Finished Training, Starting evaluation...")
     # evaluate_fewshot(model.encoder, test_loader, n_way=args.n_way, n_shots=[1,5], n_query=args.n_query, classifier='SVM')
     # evaluate_fewshot(model.encoder, test_loader, n_way=args.n_way, n_shots=[1,5], n_query=args.n_query, classifier='LR', power_norm=False)
     evaluate_fewshot(model.encoder, test_loader, n_way=args.n_way, n_shots=[1,5], n_query=args.n_query, classifier='LR', power_norm=True)
+    print("Finished evaluation")
 
     if args.save_path is not None:
         save_file = os.path.join(args.save_path, 'last.pth')
+        print('Saving model to {}'.format(save_file))
         save_model(model, args.epochs, save_file)
 
 if __name__ == '__main__':
