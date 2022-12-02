@@ -40,7 +40,7 @@ def parse_option():
     parser.add_argument('--wd', type=float, default=1e-4, help='weight decay')
     parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
     parser.add_argument('--batch_size', type=int, default=256, help='batch_size')
-    parser.add_argument('--epochs', type=int, default=0, help='number of training epochs')
+    parser.add_argument('--epochs', type=int, default=400, help='number of training epochs')
     parser.add_argument('--lrd_step', action='store_true', help='decay learning rate per step')
 
     # self-supervision setting
@@ -145,13 +145,13 @@ def build_model(args):
 
     if args.model_path is not None:
         model.load_state_dict(torch.load(args.model_path)['model'], strict=False)
-        # lin = torch.nn.Linear(model.encoder.out_dim, model.encoder.out_dim)
-        lin = torch.nn.Identity()
+        lin = torch.nn.Linear(model.encoder.out_dim, model.encoder.out_dim)
+        # lin = torch.nn.Identity()
         model.encoder.fc = torch.nn.Sequential(lin)
-        # model.get_parameter('encoder.fc.0.weight').data = torch.eye(512)
+        model.get_parameter('encoder.fc.0.weight').data = torch.eye(model.encoder.out_dim)
+        model.get_parameter('encoder.fc.0.bias').data = torch.zeros(model.encoder.out_dim)
     
     model = model.cuda()
-
     print(model)
     
     return model
@@ -246,10 +246,10 @@ def main():
         return
         
     if args.model_path is not None:
-        optimizer = optim.SGD(model.parameters()
-            # [
-                # {'params': model.encoder.get_parameter('module.fc.0'+'.weight')},
-            # ]
+        optimizer = optim.SGD(
+            [
+                {'params': model.encoder.get_parameter('module.fc.0'+'.weight')},
+            ]
             , lr=args.lr, weight_decay=args.wd, momentum=0.9)
     else:
         optimizer = optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.wd, momentum=0.9)
@@ -262,18 +262,20 @@ def main():
         time1 = time.time()
         loss = train_one_epoch(train_loader, model, optimizer, epoch, args, teacher_model=teacher_model)
         time2 = time.time()
-        print('epoch {}, total time {:.2f}'.format(epoch, time2 - time1))
+        if epoch % 10 == 0:
+            evaluate_fewshot(model.encoder, test_loader, n_way=args.n_way, n_shots=[1,5], n_query=args.n_query, classifier='LR', power_norm=True)
+            print("Finished evaluation")
+
+            if args.save_path is not None:
+                save_file = os.path.join(args.save_path, f'{epoch}.pth')
+                print('Saving model to {}'.format(save_file))
+                save_model(model, epoch, save_file)
+                print('epoch {}, total time {:.2f}'.format(epoch, time2 - time1))
 
     print("Finished Training, Starting evaluation...")
     # evaluate_fewshot(model.encoder, test_loader, n_way=args.n_way, n_shots=[1,5], n_query=args.n_query, classifier='SVM')
     # evaluate_fewshot(model.encoder, test_loader, n_way=args.n_way, n_shots=[1,5], n_query=args.n_query, classifier='LR', power_norm=False)
-    evaluate_fewshot(model.encoder, test_loader, n_way=args.n_way, n_shots=[1,5], n_query=args.n_query, classifier='LR', power_norm=True)
-    print("Finished evaluation")
-
-    if args.save_path is not None:
-        save_file = os.path.join(args.save_path, 'last.pth')
-        print('Saving model to {}'.format(save_file))
-        save_model(model, args.epochs, save_file)
+    
 
 if __name__ == '__main__':
     main()
