@@ -35,32 +35,26 @@ def evaluate_fewshot(
         qry_f = qry_f.reshape(test_batch_size, n_way*n_query, -1).detach().cpu().numpy()
         qry_label = torch.arange(n_way).unsqueeze(1).expand(n_way, n_query).reshape(-1).numpy()
 
+        def isfinite(x, name):
+            print(name)
+            if np.isfinite(x).all():
+                print("Finite")
+            else:
+                print("Not finite")
+            print(x)
+
         for tb in range(test_batch_size):
             # print(f"Batch {tb} of {test_batch_size}")
             for n_shot in n_shots:
                 # print(f"n_shot: {n_shot}")
                 cur_sup_f = sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach().cpu().numpy()
                 # check if cur_sup_f is all finite numbers, if not print it and check for sup_f after the reshape, if it is all finite numbers then check for f
-                if not np.isfinite(cur_sup_f).all():
-                    print("cur_sup_f is not finite")
-                    print(cur_sup_f)
-                    if not np.isfinite(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach().cpu()).all():
-                        print("sup_f is not finite after cpu")
-                        print(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1))
-                        print(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach().cpu())
-                        if not np.isfinite(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach()).all():
-                            print("sup_f is not finite after detach")
-                            print(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach())
-                            if not np.isfinite(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1)).all():
-                                print("sup_f is not finite after reshape")
-                                print(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1))
-                                if not np.isfinite(sup_f[tb, :, :n_shot, :]).all():
-                                    print("sup_f is not finite")
-                                    print(sup_f[tb, :, :n_shot, :])
-                                    if not np.isfinite(f).all():
-                                        print("f is not finite")
-                                        print(f)
-                
+                isfinite(cur_sup_f, "cur_sup_f")
+                isfinite(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach().cpu(), "sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach().cpu()")
+                isfinite(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach(), "sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach()")
+                isfinite(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1), "sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1)")
+                isfinite(f, "f")
+            
                 # print("cur_sup_f fine")
                 cur_sup_y = torch.arange(n_way).unsqueeze(1).expand(n_way, n_shot).reshape(-1).numpy()
                 # print("cur_sup_y fine")
