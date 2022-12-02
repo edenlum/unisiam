@@ -142,13 +142,15 @@ def build_model(args):
 
     model.encoder = torch.nn.DataParallel(model.encoder)
     model = model.cuda()
-    
+
     if args.model_path is not None:
         model.load_state_dict(torch.load(args.model_path)['model'], strict=False)
         # lin = torch.nn.Linear(model.encoder.out_dim, model.encoder.out_dim)
         lin = torch.nn.Identity()
         model.encoder.fc = torch.nn.Sequential(lin)
         # model.get_parameter('encoder.fc.0.weight').data = torch.eye(512)
+    
+    model = model.cuda()
 
     print(model)
     
