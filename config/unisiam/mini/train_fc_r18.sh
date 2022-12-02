@@ -3,5 +3,5 @@ python train.py \
   --backbone resnet18 \
   --model_path /content/drive/MyDrive/unisiam_released_models/mini_r18.pth \
   --lrd_step \
-  --data_path /content/unisiam/miniimagenet \
+  --data_path /content/miniimagenet \
   --save_path /content/unisiam/out
