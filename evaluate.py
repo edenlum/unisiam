@@ -47,12 +47,19 @@ def evaluate_fewshot(
                     if not np.isfinite(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach().cpu()).all():
                         print("sup_f is not finite after cpu")
                         print(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1))
+                        print(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach().cpu())
                         if not np.isfinite(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach()).all():
                             print("sup_f is not finite after detach")
                             print(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach())
-                            if not np.isfinite(f).all():
-                                print("f is not finite")
-                                print(f)
+                            if not np.isfinite(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1)).all():
+                                print("sup_f is not finite after reshape")
+                                print(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1))
+                                if not np.isfinite(sup_f[tb, :, :n_shot, :]).all():
+                                    print("sup_f is not finite")
+                                    print(sup_f[tb, :, :n_shot, :])
+                                    if not np.isfinite(f).all():
+                                        print("f is not finite")
+                                        print(f)
                 
                 # print("cur_sup_f fine")
                 cur_sup_y = torch.arange(n_way).unsqueeze(1).expand(n_way, n_shot).reshape(-1).numpy()
