@@ -226,7 +226,9 @@ class ResNet(nn.Module):
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
         if self.fc is not None:
-            x = self.fc(x)
+            fc_out = self.fc(x)
+            # check if fc_out is changed
+            print(torch.all(torch.eq(fc_out, x)))
         # x = self.bn_out(x)
         return x
 
