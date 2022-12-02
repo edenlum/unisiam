@@ -142,8 +142,9 @@ def build_model(args):
 
     if args.model_path is not None:
         model.load_state_dict(torch.load(args.model_path)['model'], strict=False)
-        lin = torch.nn.Identity(model.encoder.out_dim, model.encoder.out_dim)
+        lin = torch.nn.Linear(model.encoder.out_dim, model.encoder.out_dim)
         model.encoder.fc = torch.nn.Sequential(lin)
+        model.get_parameter('module.fc.0.weight').data = torch.eye(512)
         
     model.encoder = torch.nn.DataParallel(model.encoder)
     model = model.cuda()
@@ -242,10 +243,10 @@ def main():
         return
         
     if args.model_path is not None:
-        optimizer = optim.SGD(model.parameters()
-            # [
-            #     {'params': model.encoder.get_parameter('module.fc.0'+'.weight')},
-            # ]
+        optimizer = optim.SGD(
+            [
+                {'params': model.encoder.get_parameter('module.fc.0'+'.weight')},
+            ]
             , lr=args.lr, weight_decay=args.wd, momentum=0.9)
     else:
         optimizer = optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.wd, momentum=0.9)
