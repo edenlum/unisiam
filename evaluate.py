@@ -40,6 +40,20 @@ def evaluate_fewshot(
             for n_shot in n_shots:
                 # print(f"n_shot: {n_shot}")
                 cur_sup_f = sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach().cpu().numpy()
+                # check if cur_sup_f is all finite numbers, if not print it and check for sup_f after the reshape, if it is all finite numbers then check for f
+                if not np.isfinite(cur_sup_f).all():
+                    print("cur_sup_f is not finite")
+                    print(cur_sup_f)
+                    if not np.isfinite(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach().cpu()).all():
+                        print("sup_f is not finite after cpu")
+                        print(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1))
+                        if not np.isfinite(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach()).all():
+                            print("sup_f is not finite after detach")
+                            print(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach())
+                            if not np.isfinite(f).all():
+                                print("f is not finite")
+                                print(f)
+                
                 # print("cur_sup_f fine")
                 cur_sup_y = torch.arange(n_way).unsqueeze(1).expand(n_way, n_shot).reshape(-1).numpy()
                 # print("cur_sup_y fine")
