@@ -68,7 +68,7 @@ def evaluate_fewshot(
 
                 accs[f'{n_shot}-shot'].append(acc)
                 # print("append fine")
-        print(accs[f'{n_shot}-shot'])
+            print(accs[f'{n_shot}-shot'][-1])
         
     for n_shot in n_shots:
         acc = np.array(accs[f'{n_shot}-shot'])
