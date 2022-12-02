@@ -228,7 +228,7 @@ class ResNet(nn.Module):
         if self.fc is not None:
             fc_out = self.fc(x)
             # check if fc_out is changed
-            print(torch.all(torch.eq(fc_out, x)))
+            # print(torch.all(torch.eq(fc_out, x)))
             x = fc_out
         # x = self.bn_out(x)
         return x
