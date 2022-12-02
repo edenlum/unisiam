@@ -143,17 +143,19 @@ def build_model(args):
     model.encoder = torch.nn.DataParallel(model.encoder)
     model = model.cuda()
 
+    print(model)
     if args.model_path is not None:
         model.load_state_dict(torch.load(args.model_path)['model'], strict=False)
-        lin = torch.nn.Linear(model.encoder.out_dim, model.encoder.out_dim)
+        out_dim = model.encoder.module.out_dim
+        lin = torch.nn.Linear(out_dim, out_dim)
         # lin = torch.nn.Identity()
-        model.encoder.fc = torch.nn.Sequential(lin)
-        model.get_parameter('encoder.fc.0.weight').data = torch.eye(model.encoder.out_dim)
-        model.get_parameter('encoder.fc.0.bias').data = torch.zeros(model.encoder.out_dim)
+        model.encoder.module.fc = torch.nn.Sequential(lin)
+        model.get_parameter('encoder.module.fc.0.weight').data = torch.eye(out_dim, dtype=torch.float32)
+        model.get_parameter('encoder.module.fc.0.bias').data = torch.zeros_like(model.get_parameter('encoder.module.fc.0.bias'))
     
     model = model.cuda()
     print(model)
-    
+
     return model
 
 def load_teacher_model(args):
