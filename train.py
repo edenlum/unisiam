@@ -185,6 +185,7 @@ def train_one_epoch(train_loader, model, optimizer, epoch, args, teacher_model=N
     n_iter = len(train_loader)
 
     for idx, (images, _) in enumerate(train_loader):
+        print(model.encoder.get_parameter('module.fc.0'+'.weight'))
         data_time.update(time.time() - end)
 
         if args.lrd_step:
