@@ -8,7 +8,7 @@ class UniSiam(nn.Module):
     def __init__(self, encoder, lamb=0.1, temp=2.0, dim_hidden=None, dist=False, dim_out=2048):
         super(UniSiam, self).__init__()
         self.encoder = encoder
-        self.encoder.fc = None
+        # self.encoder.fc = None
 
         dim_in = encoder.out_dim
         dim_hidden = dim_in if dim_hidden is None else dim_hidden

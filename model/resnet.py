@@ -165,8 +165,10 @@ class ResNet(nn.Module):
                                        dilate=replace_stride_with_dilation[2])
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.out_dim = 512 * block.expansion
-        self.fc = nn.Linear(512 * block.expansion, num_classes)
-
+        self.fc = nn.Linear(512 * block.expansion, 512)
+        self.get_parameter('fc.weight').data = torch.eye(512)
+        self.bn_out = norm_layer(512)
+        
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
@@ -225,6 +227,7 @@ class ResNet(nn.Module):
         x = torch.flatten(x, 1)
         if self.fc is not None:
             x = self.fc(x)
+        x = self.bn_out(x)
         return x
 
     def forward(self, x: Tensor) -> Tensor:

@@ -21,7 +21,7 @@ def evaluate_fewshot(
         accs[f'{n_shot}-shot'] = []
 
     for idx, (images, _) in enumerate(loader):
-
+        print("Loading batch: ", idx)
         images = images.cuda(non_blocking=True)
         f = encoder(images)
         f = f/f.norm(dim=-1, keepdim=True)
@@ -36,11 +36,17 @@ def evaluate_fewshot(
         qry_label = torch.arange(n_way).unsqueeze(1).expand(n_way, n_query).reshape(-1).numpy()
 
         for tb in range(test_batch_size):
+            print(f"Batch {tb} of {test_batch_size}")
             for n_shot in n_shots:
+                print(f"n_shot: {n_shot}")
                 cur_sup_f = sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach().cpu().numpy()
+                print("cur_sup_f fine")
                 cur_sup_y = torch.arange(n_way).unsqueeze(1).expand(n_way, n_shot).reshape(-1).numpy()
+                print("cur_sup_y fine")
                 cur_qry_f = qry_f[tb]
+                print("cur_qry_f fine")
                 cur_qry_y = qry_label
+                print("cur_qry_y fine")
 
                 if classifier == 'LR':
                     clf = LogisticRegression(penalty='l2',
@@ -51,12 +57,17 @@ def evaluate_fewshot(
                                             multi_class='multinomial')
                 elif classifier == 'SVM':
                     clf = LinearSVC(C=1.0)
+                print("clf fine")
 
                 clf.fit(cur_sup_f, cur_sup_y)
+                print("clf fit fine")
                 cur_qry_pred = clf.predict(cur_qry_f)
+                print("clf predict fine")
                 acc = metrics.accuracy_score(cur_qry_y, cur_qry_pred)
+                print("metrics fine")
 
                 accs[f'{n_shot}-shot'].append(acc)
+                print("append fine")
         
     for n_shot in n_shots:
         acc = np.array(accs[f'{n_shot}-shot'])

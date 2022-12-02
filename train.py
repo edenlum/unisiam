@@ -40,7 +40,7 @@ def parse_option():
     parser.add_argument('--wd', type=float, default=1e-4, help='weight decay')
     parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
     parser.add_argument('--batch_size', type=int, default=256, help='batch_size')
-    parser.add_argument('--epochs', type=int, default=1, help='number of training epochs')
+    parser.add_argument('--epochs', type=int, default=0, help='number of training epochs')
     parser.add_argument('--lrd_step', action='store_true', help='decay learning rate per step')
 
     # self-supervision setting
@@ -142,9 +142,8 @@ def build_model(args):
 
     if args.model_path is not None:
         model.load_state_dict(torch.load(args.model_path)['model'], strict=False)
-        lin = torch.nn.Linear(model.encoder.out_dim, model.encoder.out_dim)
-        relu = torch.nn.ReLU(inplace=True)
-        model.encoder.fc = torch.nn.Sequential(lin, relu)
+        lin = torch.nn.Identity(model.encoder.out_dim, model.encoder.out_dim)
+        model.encoder.fc = torch.nn.Sequential(lin)
         
     model.encoder = torch.nn.DataParallel(model.encoder)
     model = model.cuda()
@@ -243,9 +242,11 @@ def main():
         return
         
     if args.model_path is not None:
-        optimizer = optim.SGD([
-                {'params': model.encoder.get_parameter('module.fc.0'+'.weight')},
-            ], lr=args.lr, weight_decay=args.wd, momentum=0.9)
+        optimizer = optim.SGD(model.parameters()
+            # [
+            #     {'params': model.encoder.get_parameter('module.fc.0'+'.weight')},
+            # ]
+            , lr=args.lr, weight_decay=args.wd, momentum=0.9)
     else:
         optimizer = optim.SGD(model.parameters(), lr=args.lr, weight_decay=args.wd, momentum=0.9)
 
