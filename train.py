@@ -149,7 +149,9 @@ def build_model(args):
         out_dim = model.encoder.module.out_dim
         lin = torch.nn.Linear(out_dim, out_dim)
         # lin = torch.nn.Identity()
-        model.encoder.module.fc = torch.nn.Sequential(lin)
+        bn = torch.nn.BatchNorm2d(out_dim)
+        relu = torch.nn.ReLU(inplace=True)
+        model.encoder.module.fc = torch.nn.Sequential(lin, bn, relu)
         model.get_parameter('encoder.module.fc.0.weight').data = torch.eye(out_dim, dtype=torch.float32)
         model.get_parameter('encoder.module.fc.0.bias').data = torch.zeros_like(model.get_parameter('encoder.module.fc.0.bias'))
     
