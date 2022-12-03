@@ -12,10 +12,16 @@ from sklearn.svm import LinearSVC
 
 def isfinite(x, name):
     print(name)
-    if np.isfinite(x).all():
-        print("Finite")
-    else:
-        print("Not finite")
+    try:
+        if np.isfinite(x).all():
+            print("Finite")
+        else:
+            print("Not finite")
+    except:
+        if torch.isfinite(x).all():
+            print("Finite")
+        else:
+            print("Not finite")
     print(x)
 
 @torch.no_grad()
