@@ -38,14 +38,15 @@ def evaluate_fewshot(
         print("Loading batch: ", idx)
         images = images.cuda(non_blocking=True)
         f = encoder(images)
-        isfinite(f, "f before norm")
+        del images
+        # isfinite(f, "f before norm")
         f = f/f.norm(dim=-1, keepdim=True)
 
-        isfinite(f, "f before power norm")
+        # isfinite(f, "f before power norm")
         if power_norm:
             f = f ** 0.5
         
-        isfinite(f, "f after power norm")
+        # isfinite(f, "f after power norm")
 
         max_n_shot = max(n_shots)
         test_batch_size = int(f.shape[0]/n_way/(n_query+max_n_shot))
@@ -53,19 +54,19 @@ def evaluate_fewshot(
         qry_f = qry_f.reshape(test_batch_size, n_way*n_query, -1).detach().cpu().numpy()
         qry_label = torch.arange(n_way).unsqueeze(1).expand(n_way, n_query).reshape(-1).numpy()
 
+        del f
         
-
         for tb in range(test_batch_size):
             # print(f"Batch {tb} of {test_batch_size}")
             for n_shot in n_shots:
                 # print(f"n_shot: {n_shot}")
                 cur_sup_f = sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach().cpu().numpy()
                 # check if cur_sup_f is all finite numbers, if not print it and check for sup_f after the reshape, if it is all finite numbers then check for f
-                isfinite(cur_sup_f, "cur_sup_f")
-                isfinite(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach().cpu(), "sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach().cpu()")
-                isfinite(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach(), "sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach()")
-                isfinite(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1), "sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1)")
-                isfinite(f, "f")
+                # isfinite(cur_sup_f, "cur_sup_f")
+                # isfinite(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach().cpu(), "sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach().cpu()")
+                # isfinite(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach(), "sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1).detach()")
+                # isfinite(sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1), "sup_f[tb, :, :n_shot, :].reshape(n_way*n_shot, -1)")
+                # isfinite(f, "f")
             
                 # print("cur_sup_f fine")
                 cur_sup_y = torch.arange(n_way).unsqueeze(1).expand(n_way, n_shot).reshape(-1).numpy()
@@ -95,7 +96,7 @@ def evaluate_fewshot(
 
                 accs[f'{n_shot}-shot'].append(acc)
                 # print("append fine")
-            print(accs[f'{n_shot}-shot'][-1])
+            print(f"n_shot: {n_shot}", accs[f'{n_shot}-shot'][-1])
         
     for n_shot in n_shots:
         acc = np.array(accs[f'{n_shot}-shot'])
