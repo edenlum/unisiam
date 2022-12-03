@@ -10,6 +10,14 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
 
 
+def isfinite(x, name):
+    print(name)
+    if np.isfinite(x).all():
+        print("Finite")
+    else:
+        print("Not finite")
+    print(x)
+
 @torch.no_grad()
 def evaluate_fewshot(
     encoder, loader, n_way=5, n_shots=[1,5], n_query=15, classifier='LR', power_norm=False):
@@ -24,10 +32,14 @@ def evaluate_fewshot(
         print("Loading batch: ", idx)
         images = images.cuda(non_blocking=True)
         f = encoder(images)
+        isfinite(f, "f before norm")
         f = f/f.norm(dim=-1, keepdim=True)
 
+        isfinite(f, "f before power norm")
         if power_norm:
             f = f ** 0.5
+        
+        isfinite(f, "f after power norm")
 
         max_n_shot = max(n_shots)
         test_batch_size = int(f.shape[0]/n_way/(n_query+max_n_shot))
@@ -35,13 +47,7 @@ def evaluate_fewshot(
         qry_f = qry_f.reshape(test_batch_size, n_way*n_query, -1).detach().cpu().numpy()
         qry_label = torch.arange(n_way).unsqueeze(1).expand(n_way, n_query).reshape(-1).numpy()
 
-        def isfinite(x, name):
-            print(name)
-            if np.isfinite(x).all():
-                print("Finite")
-            else:
-                print("Not finite")
-            print(x)
+        
 
         for tb in range(test_batch_size):
             # print(f"Batch {tb} of {test_batch_size}")
