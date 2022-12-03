@@ -268,14 +268,14 @@ def main():
         loss = train_one_epoch(train_loader, model, optimizer, epoch, args, teacher_model=teacher_model)
         time2 = time.time()
         if epoch % 10 == 0:
-            evaluate_fewshot(model.encoder, test_loader, n_way=args.n_way, n_shots=[1,5], n_query=args.n_query, classifier='LR', power_norm=True)
-            print("Finished evaluation")
-
             if args.save_path is not None:
                 save_file = os.path.join(args.save_path, f'{epoch}.pth')
                 print('Saving model to {}'.format(save_file))
                 save_model(model, epoch, save_file)
                 print('epoch {}, total time {:.2f}'.format(epoch, time2 - time1))
+            
+            evaluate_fewshot(model.encoder, test_loader, n_way=args.n_way, n_shots=[1,5], n_query=args.n_query, classifier='LR', power_norm=True)
+            print("Finished evaluation")
 
     print("Finished Training, Starting evaluation...")
     # evaluate_fewshot(model.encoder, test_loader, n_way=args.n_way, n_shots=[1,5], n_query=args.n_query, classifier='SVM')
