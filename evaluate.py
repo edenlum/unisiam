@@ -35,6 +35,7 @@ def evaluate_fewshot(
         accs[f'{n_shot}-shot'] = []
 
     for idx, (images, _) in enumerate(loader):
+        torch.cuda.empty_cache()
         print("Loading batch: ", idx)
         images = images.cuda(non_blocking=True)
         f = encoder(images)
@@ -55,7 +56,7 @@ def evaluate_fewshot(
         qry_label = torch.arange(n_way).unsqueeze(1).expand(n_way, n_query).reshape(-1).numpy()
 
         del f
-        
+
         for tb in range(test_batch_size):
             # print(f"Batch {tb} of {test_batch_size}")
             for n_shot in n_shots:
